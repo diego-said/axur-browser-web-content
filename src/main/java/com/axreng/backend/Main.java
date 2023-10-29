@@ -17,9 +17,12 @@ import static spark.Spark.post;
 
 public class Main {
 
-    private final static String BASE_URL = "http://hiring.axreng.com/"; //TODO: should be a env var
+    private final static String BASE_URL = System.getenv("BASE_URL");
 
     public static void main(String[] args) {
+        if (BASE_URL == null || BASE_URL.isBlank())
+            throw new IllegalArgumentException("env var [BASE_URL] not found");
+
         get("/crawl/:id", (req, res) -> {
                     res.header("Content-Type", "application/json");
                     final String searchId = req.params("id");
