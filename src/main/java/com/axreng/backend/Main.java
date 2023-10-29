@@ -2,7 +2,9 @@ package com.axreng.backend;
 
 import com.axreng.backend.rest.RestErrorMessages;
 import com.axreng.backend.rest.RestResponse;
+import com.axreng.backend.search.entities.Search;
 import com.axreng.backend.util.KeywordUtils;
+import com.axreng.backend.util.SearchUtils;
 import com.google.gson.Gson;
 
 import java.net.HttpURLConnection;
@@ -12,6 +14,9 @@ import static spark.Spark.get;
 import static spark.Spark.post;
 
 public class Main {
+
+    private final static String BASE_URL = "http://hiring.axreng.com/"; //TODO: should be a env var
+
     public static void main(String[] args) {
         get("/crawl/:id", (req, res) ->
                 "GET /crawl/" + req.params("id")
@@ -38,12 +43,10 @@ public class Main {
                                 new RestResponse(HttpURLConnection.HTTP_BAD_REQUEST, RestErrorMessages.EMPTY_KEYWORD));
                     }
 
-                    keyword.ifPresent(System.out::println);
-//                    HttpRequest httpRequest = new HttpRequest("http://hiring.axreng.com/");
-//                    HttpResponse resp = httpRequest.get();
-//                    resp.getContent().forEach(System.out::println);
+                    Search search = new Search(SearchUtils.randomId());
 
-                    return "POST /crawl" + System.lineSeparator() + req.body();
+                    res.status(HttpURLConnection.HTTP_OK);
+                    return search.getIdAsJson();
                 }
         );
     }
