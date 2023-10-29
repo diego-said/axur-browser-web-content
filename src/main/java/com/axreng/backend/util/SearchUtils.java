@@ -16,4 +16,10 @@ public class SearchUtils {
         return sb.toString();
     }
 
+    public static boolean isSearchIdValid(String searchId) {
+        return searchId != null &&
+                !searchId.isBlank() &&
+                searchId.length() == MAX_ID_LENGTH;
+    }
+
 }
