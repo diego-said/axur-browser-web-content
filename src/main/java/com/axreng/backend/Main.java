@@ -1,8 +1,11 @@
 package com.axreng.backend;
 
+import com.axreng.backend.rest.RestErrorMessages;
+import com.axreng.backend.rest.RestResponse;
+import com.axreng.backend.util.KeywordUtils;
 import com.google.gson.Gson;
 
-import java.util.Map;
+import java.net.HttpURLConnection;
 import java.util.Optional;
 
 import static spark.Spark.get;
@@ -15,7 +18,26 @@ public class Main {
 
         );
         post("/crawl", (req, res) -> {
-                    Optional<String> keyword = getKeyword(req.body());
+                    if (req.body().isBlank()) {
+                        res.status(HttpURLConnection.HTTP_BAD_REQUEST);
+                        return new Gson().toJson(
+                                new RestResponse(HttpURLConnection.HTTP_BAD_REQUEST, RestErrorMessages.EMPTY_KEYWORD));
+                    }
+
+                    Optional<String> keyword = KeywordUtils.getKeyword(req.body());
+                    if (keyword.isPresent()) {
+                        boolean validKeyword = KeywordUtils.isKeywordValid(keyword.get());
+                        if (!validKeyword) {
+                            res.status(HttpURLConnection.HTTP_BAD_REQUEST);
+                            return new Gson().toJson(
+                                    new RestResponse(HttpURLConnection.HTTP_BAD_REQUEST, RestErrorMessages.INVALID_KEYWORD));
+                        }
+                    } else {
+                        res.status(HttpURLConnection.HTTP_BAD_REQUEST);
+                        return new Gson().toJson(
+                                new RestResponse(HttpURLConnection.HTTP_BAD_REQUEST, RestErrorMessages.EMPTY_KEYWORD));
+                    }
+
                     keyword.ifPresent(System.out::println);
 //                    HttpRequest httpRequest = new HttpRequest("http://hiring.axreng.com/");
 //                    HttpResponse resp = httpRequest.get();
@@ -26,11 +48,4 @@ public class Main {
         );
     }
 
-    private static Optional<String> getKeyword(String requestBody) {
-        Map<?, ?> map = new Gson().fromJson(requestBody, Map.class);
-        if (Optional.ofNullable(map.get("keyword")).isPresent()) {
-            return String.valueOf(map.get("keyword")).describeConstable();
-        }
-        return Optional.empty();
-    }
 }
