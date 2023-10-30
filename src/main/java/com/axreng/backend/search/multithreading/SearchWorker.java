@@ -42,20 +42,22 @@ public class SearchWorker implements Runnable {
         final HttpRequest request = new HttpRequest(Main.BASE_URL);
         final HttpResponse response = request.get();
 
-        boolean keywordFound = SearchUtils.isKeywordFound(search.getKeyword(), response.getContent());
-        if(keywordFound) {
-            search.getUrls().add(response.getUrl());
-        }
-
-        SearchUtils.getLinks(response).stream().filter(link -> {
-            try {
-                final URI baseURL = new URI(Main.BASE_URL);
-                final URI uri = new URI(String.valueOf(link));
-                return baseURL.getHost().equals(uri.getHost());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
+        if (response.isSuccessful()) {
+            boolean keywordFound = SearchUtils.isKeywordFound(search.getKeyword(), response.getContent());
+            if(keywordFound) {
+                search.getUrls().add(response.getUrl());
             }
-        }).forEach(logger::info);
+
+            SearchUtils.getLinks(response).stream().filter(link -> {
+                try {
+                    final URI baseURL = new URI(Main.BASE_URL);
+                    final URI uri = new URI(String.valueOf(link));
+                    return baseURL.getHost().equals(uri.getHost());
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            }).forEach(logger::info);
+        }
 
         search.setStatus(SearchStatus.done);
     }

@@ -57,4 +57,8 @@ public class HttpResponse {
         }
     }
 
+    public boolean isSuccessful() {
+        return status >= 200 && status <= 299;
+    }
+
 }

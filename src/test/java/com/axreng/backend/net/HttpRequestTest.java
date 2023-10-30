@@ -14,6 +14,7 @@ public class HttpRequestTest {
 
         Assertions.assertNotNull(response);
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
+        Assertions.assertTrue(response.isSuccessful());
         Assertions.assertFalse(response.getContent().isEmpty());
     }
 

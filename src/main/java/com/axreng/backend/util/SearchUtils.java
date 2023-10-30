@@ -49,7 +49,7 @@ public class SearchUtils {
     }
 
     public static List<String> getLinks(HttpResponse response) {
-        if(response.getStatus() >= 200 && response.getStatus() <= 299) {
+        if(response.isSuccessful()) {
             BufferedReader bufferedReader = new BufferedReader(
                     new InputStreamReader(
                             new ByteArrayInputStream(response.getContentAsByteArray())
