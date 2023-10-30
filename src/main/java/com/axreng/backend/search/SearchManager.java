@@ -3,19 +3,11 @@ package com.axreng.backend.search;
 import com.axreng.backend.net.HttpRequest;
 import com.axreng.backend.net.HttpResponse;
 import com.axreng.backend.search.entities.Search;
+import com.axreng.backend.util.SearchUtils;
 
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.parser.ParserDelegator;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class SearchManager {
@@ -46,9 +38,9 @@ public class SearchManager {
         final HttpRequest request = new HttpRequest(baseUrl);
         final HttpResponse response = request.get();
 
-        System.out.println("Keyword: " + isKeywordFound(search.getKeyword(), response.getContent()));
+        System.out.println("Keyword: " + SearchUtils.isKeywordFound(search.getKeyword(), response.getContent()));
 
-        getLinks(response).stream().forEach(link -> {
+        SearchUtils.getLinks(response).forEach(link -> {
             System.out.println(link);
             try {
                 URI baseURL = new URI(baseUrl);
@@ -58,54 +50,6 @@ public class SearchManager {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-    private List<String> getLinks(HttpResponse response) {
-        if(response.getStatus() >= 200 && response.getStatus() <= 299) {
-            BufferedReader bufferedReader = new BufferedReader(
-                    new InputStreamReader(
-                            new ByteArrayInputStream(response.getContentAsByteArray())
-                    ));
-
-            HTMLEditorKit.Parser parser = new ParserDelegator();
-            final List<String> links = new ArrayList<>();
-            try {
-                parser.parse(bufferedReader, new HTMLEditorKit.ParserCallback() {
-                    public void handleStartTag(HTML.Tag t, MutableAttributeSet a, int pos) {
-                        if (t == HTML.Tag.A) {
-                            Object link = a.getAttribute(HTML.Attribute.HREF);
-                            if (link != null) {
-                                try {
-                                    URI baseURL = new URI(baseUrl);
-                                    URI uri = new URI(String.valueOf(link));
-                                    links.add(baseURL.resolve(uri).toString());
-                                } catch (URISyntaxException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        }
-                    }
-                }, true);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return links;
-        }
-        return Collections.emptyList();
-    }
-
-    private boolean isKeywordFound(String keyword, List<String> content) {
-        long total = content.stream()
-                .filter(s -> s.toLowerCase().indexOf(keyword.toLowerCase()) != -1)
-                .count();
-        System.out.println("keyword total: " + total);
-        return total > 0;
     }
 
 }

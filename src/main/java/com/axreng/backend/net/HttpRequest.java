@@ -52,7 +52,7 @@ public class HttpRequest {
                 content.add(inputLine);
             }
             in.close();
-            return new HttpResponse(httpURLConnection.getResponseCode(), content);
+            return new HttpResponse(url, httpURLConnection.getResponseCode(), content);
         } catch (IOException e) {
             logger.error("HttpRequest method [GET] failed for url: " + url, e);
             throw new RuntimeException(e);
