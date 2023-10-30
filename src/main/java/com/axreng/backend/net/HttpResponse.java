@@ -61,4 +61,8 @@ public class HttpResponse {
         return status >= 200 && status <= 299;
     }
 
+    public boolean isServerError() {
+        return status >= 500 && status <= 599;
+    }
+
 }

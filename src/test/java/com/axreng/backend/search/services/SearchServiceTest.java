@@ -19,7 +19,7 @@ public class SearchServiceTest {
         Assertions.assertNotNull(search);
         Assertions.assertEquals("security", search.getKeyword());
         Assertions.assertEquals(0, search.getUrls().size());
-        Assertions.assertEquals(SearchStatus.create, search.getStatus());
+        Assertions.assertEquals(SearchStatus.active, search.getStatus());
     }
 
     @Test
