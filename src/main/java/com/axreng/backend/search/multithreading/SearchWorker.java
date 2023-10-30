@@ -78,8 +78,9 @@ public class SearchWorker implements Runnable {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
+                } else {
+                    break;
                 }
-                break;
             }  catch (RuntimeException e) {
                 logger.error("SearchWorker - request url: " + Main.BASE_URL, e);
                 searchRetries++;
