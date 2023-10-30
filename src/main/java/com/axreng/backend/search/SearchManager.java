@@ -46,6 +46,8 @@ public class SearchManager {
         final HttpRequest request = new HttpRequest(baseUrl);
         final HttpResponse response = request.get();
 
+        System.out.println("Keyword: " + isKeywordFound(search.getKeyword(), response.getContent()));
+
         getLinks(response).stream().forEach(link -> {
             System.out.println(link);
             try {
@@ -55,7 +57,6 @@ public class SearchManager {
             } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
-
         });
     }
 
@@ -97,6 +98,14 @@ public class SearchManager {
             return links;
         }
         return Collections.emptyList();
+    }
+
+    private boolean isKeywordFound(String keyword, List<String> content) {
+        long total = content.stream()
+                .filter(s -> s.toLowerCase().indexOf(keyword.toLowerCase()) != -1)
+                .count();
+        System.out.println("keyword total: " + total);
+        return total > 0;
     }
 
 }
