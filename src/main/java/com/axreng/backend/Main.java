@@ -17,7 +17,7 @@ import static spark.Spark.post;
 
 public class Main {
 
-    private final static String BASE_URL = System.getenv("BASE_URL");
+    public final static String BASE_URL = System.getenv("BASE_URL");
 
     public static void main(String[] args) {
         if (BASE_URL == null || BASE_URL.isBlank())

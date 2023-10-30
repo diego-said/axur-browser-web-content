@@ -1,6 +1,6 @@
 package com.axreng.backend.search.services;
 
-import com.axreng.backend.search.SearchManager;
+import com.axreng.backend.search.multithreading.SearchManager;
 import com.axreng.backend.search.entities.Search;
 import com.axreng.backend.util.KeywordUtils;
 import com.axreng.backend.util.SearchUtils;
@@ -33,7 +33,6 @@ public class SearchService {
         final Search search = new Search(SearchUtils.randomId(), keyword);
         searches.put(search.getId(), search);
         SearchManager.getInstance().addSearch(search);
-        SearchManager.getInstance().performNextSearchInQueue();
         return search;
     }
 
