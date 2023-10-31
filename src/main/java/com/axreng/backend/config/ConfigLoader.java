@@ -44,6 +44,10 @@ public final class ConfigLoader {
         return Optional.ofNullable(properties.getProperty(configName));
     }
 
+    public Optional<Integer> getConfigAsInteger(ConfigNames name) {
+        return getConfigAsInteger(name.toString());
+    }
+
     public Optional<Integer> getConfigAsInteger(String configName) {
         Optional<String> value = Optional.ofNullable(properties.getProperty(configName));
         if (value.isPresent() && !value.get().isBlank())

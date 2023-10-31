@@ -6,10 +6,10 @@ import com.axreng.backend.search.entities.Search;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class SearchManager {
+import static com.axreng.backend.config.ConfigNames.NUMBER_OF_WORKERS;
+import static com.axreng.backend.config.ConfigNames.QUEUE_SIZE;
 
-    private static final String CONFIG_QUEUE_SIZE = "search.queue.size";
-    private static final String CONFIG_NUMBER_OF_WORKERS = "search.workers";
+public class SearchManager {
 
     private static SearchManager INSTANCE;
 
@@ -17,12 +17,12 @@ public class SearchManager {
 
     public SearchManager() {
         ConfigLoader configLoader = ConfigLoader.getInstance();
-        var configValue = configLoader.getConfigAsInteger(CONFIG_QUEUE_SIZE);
+        var configValue = configLoader.getConfigAsInteger(QUEUE_SIZE);
         int queueSize = configValue.orElse(0);
 
         this.searchQueue = new ArrayBlockingQueue<>(queueSize);
 
-        configValue = configLoader.getConfigAsInteger(CONFIG_NUMBER_OF_WORKERS);
+        configValue = configLoader.getConfigAsInteger(NUMBER_OF_WORKERS);
         int numberOfWorkers = configValue.orElse(0);
         for (int i = 0; i < numberOfWorkers; i++) {
             createWorker();

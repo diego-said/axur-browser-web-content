@@ -14,10 +14,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SearchWorker implements SearchPerformable, Runnable {
+import static com.axreng.backend.config.ConfigNames.MAX_RETRIES;
+import static com.axreng.backend.config.ConfigNames.REQUEST_PROCESSORS;
+import static com.axreng.backend.config.ConfigNames.REQUEST_PROCESSOR_LINKS_QUEUE_SIZE;
 
-    private static final String CONFIG_MAX_RETRIES = "search.max.retries";
-    private static final String CONFIG_REQUEST_PROCESSORS = "search.request.processors";
+public class SearchWorker implements SearchPerformable, Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(SearchWorker.class);
 
@@ -27,14 +28,19 @@ public class SearchWorker implements SearchPerformable, Runnable {
 
     private final int requestProcessors;
 
+    private final int requestProcessorQueueSize;
+
     public SearchWorker(BlockingQueue<Search> queue) {
         this.queue = queue;
 
-        var configValue = ConfigLoader.getInstance().getConfigAsInteger(CONFIG_MAX_RETRIES);
+        var configValue = ConfigLoader.getInstance().getConfigAsInteger(MAX_RETRIES);
         maxRetires = configValue.orElse(0);
 
-        configValue = ConfigLoader.getInstance().getConfigAsInteger(CONFIG_REQUEST_PROCESSORS);
-        requestProcessors = configValue.orElse(0);
+        configValue = ConfigLoader.getInstance().getConfigAsInteger(REQUEST_PROCESSORS);
+        requestProcessors = configValue.orElse(1);
+
+        configValue = ConfigLoader.getInstance().getConfigAsInteger(REQUEST_PROCESSOR_LINKS_QUEUE_SIZE);
+        requestProcessorQueueSize = configValue.orElse(100000);
     }
 
     @Override
@@ -47,11 +53,11 @@ public class SearchWorker implements SearchPerformable, Runnable {
 
                 Set<String> linkSet = perform(search, Main.BASE_URL);
                 if(!linkSet.isEmpty()) {
-                    final BlockingQueue<String> linksQueue = new ArrayBlockingQueue<>(100000);
+                    final BlockingQueue<String> linksQueue = new ArrayBlockingQueue<>(requestProcessorQueueSize);
                     final Set<String> searchedLinks = Collections.synchronizedSet(new HashSet<>());
                     final AtomicInteger linksToBeSearched = new AtomicInteger(linkSet.size());
 
-                    createProcessors(linksQueue, search, linksToBeSearched,searchedLinks);
+                    createProcessors(linksQueue, search, linksToBeSearched, searchedLinks);
 
                     for(String link : linkSet) {
                         try {

@@ -13,10 +13,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HttpRequest {
+import static com.axreng.backend.config.ConfigNames.CONNECTION_TIMEOUT;
+import static com.axreng.backend.config.ConfigNames.READ_TIMEOUT;
 
-    private static final String CONFIG_CONNECTION_TIMEOUT = "http.request.connection.timeout";
-    private static final String CONFIG_READ_TIMEOUT = "http.request.read.timeout";
+public class HttpRequest {
 
     private final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
@@ -28,10 +28,10 @@ public class HttpRequest {
     public HttpRequest(String url) {
         this.url = url;
         ConfigLoader configLoader = ConfigLoader.getInstance();
-        var configValue = configLoader.getConfigAsInteger(CONFIG_CONNECTION_TIMEOUT);
+        var configValue = configLoader.getConfigAsInteger(CONNECTION_TIMEOUT);
         this.connectionTimeout = configValue.orElse(0);
 
-        configValue = configLoader.getConfigAsInteger(CONFIG_READ_TIMEOUT);
+        configValue = configLoader.getConfigAsInteger(READ_TIMEOUT);
         this.readTimeout = configValue.orElse(0);
     }
 

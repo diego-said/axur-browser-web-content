@@ -11,12 +11,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.axreng.backend.config.ConfigNames.MAX_IDLE_TIME;
+import static com.axreng.backend.config.ConfigNames.MAX_RETRIES;
+import static com.axreng.backend.config.ConfigNames.URLS_MAX_SIZE;
+
 public class SearchRequestProcessor implements SearchPerformable, Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchRequestProcessor.class);
-
-    private static final String CONFIG_MAX_RETRIES = "search.max.retries";
-    private static final String CONFIG_URLS_MAX_SIZE = "search.urls.max.size";
 
     private final BlockingQueue<String> linksQueue;
 
@@ -28,6 +29,8 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
 
     private final int maxRetires;
 
+    private final int maxIdleTime;
+
     private final int urlsMaxSize;
 
     public SearchRequestProcessor(BlockingQueue<String> linksQueue, Search search, AtomicInteger linksToBeSearched, Set<String> searchedLinks) {
@@ -36,10 +39,13 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
         this.linksToBeSearched = linksToBeSearched;
         this.searchedLinks = searchedLinks;
 
-        var configValue = ConfigLoader.getInstance().getConfigAsInteger(CONFIG_MAX_RETRIES);
+        var configValue = ConfigLoader.getInstance().getConfigAsInteger(MAX_RETRIES);
         maxRetires = configValue.orElse(0);
 
-        configValue = ConfigLoader.getInstance().getConfigAsInteger(CONFIG_URLS_MAX_SIZE);
+        configValue = ConfigLoader.getInstance().getConfigAsInteger(MAX_IDLE_TIME);
+        maxIdleTime = configValue.orElse(0);
+
+        configValue = ConfigLoader.getInstance().getConfigAsInteger(URLS_MAX_SIZE);
         urlsMaxSize = configValue.orElse(0);
     }
 
@@ -47,7 +53,7 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
     public void run() {
         try {
             while (true) {
-                String link = linksQueue.poll(1, TimeUnit.MINUTES);
+                String link = linksQueue.poll(maxIdleTime, TimeUnit.MILLISECONDS);
 
                 if (link != null) {
                     if (urlsMaxSize > 0 && search.getUrls().size() >= urlsMaxSize) {
@@ -58,6 +64,8 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
 
                     if (!searchedLinks.contains(link)) {
                         searchedLinks.add(link);
+
+                        logger.info("SearchRequestProcessor - url: " + link);
 
                         Set<String> linksSet = perform(search, link);
                         linksSet.stream()

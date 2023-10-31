@@ -1,6 +1,5 @@
 package com.axreng.backend.search.multithreading;
 
-import com.axreng.backend.Main;
 import com.axreng.backend.net.HttpRequest;
 import com.axreng.backend.net.HttpResponse;
 import com.axreng.backend.search.entities.Search;
@@ -9,7 +8,9 @@ import org.slf4j.Logger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public interface SearchPerformable {
@@ -54,7 +55,7 @@ public interface SearchPerformable {
                     return Collections.emptySet();
                 }
             }  catch (RuntimeException e) {
-                getLogger().error("SearchPerformable - request url: " + Main.BASE_URL, e);
+                getLogger().error("SearchPerformable - request url: " + baseUrl, e);
                 searchRetries++;
             }
         }
