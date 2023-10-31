@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.axreng.backend.config.ConfigNames.MAX_IDLE_TIME;
 import static com.axreng.backend.config.ConfigNames.MAX_RETRIES;
@@ -23,8 +22,6 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
 
     private final Search search;
 
-    private final AtomicInteger linksToBeSearched;
-
     private final Set<String> searchedLinks;
 
     private final int maxRetires;
@@ -33,10 +30,9 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
 
     private final int urlsMaxSize;
 
-    public SearchRequestProcessor(BlockingQueue<String> linksQueue, Search search, AtomicInteger linksToBeSearched, Set<String> searchedLinks) {
+    public SearchRequestProcessor(BlockingQueue<String> linksQueue, Search search, Set<String> searchedLinks) {
         this.linksQueue = linksQueue;
         this.search = search;
-        this.linksToBeSearched = linksToBeSearched;
         this.searchedLinks = searchedLinks;
 
         var configValue = ConfigLoader.getInstance().getConfigAsInteger(MAX_RETRIES);
@@ -58,21 +54,22 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
                 if (link != null) {
                     if (urlsMaxSize > 0 && search.getUrls().size() >= urlsMaxSize) {
                         search.setStatus(SearchStatus.done);
-                        logger.info("SearchRequestProcessor - done 1");
+                        logger.info(String.format(
+                                "SearchRequestProcessor - id: %s keyword: %s - done",
+                                search.getId(),
+                                search.getKeyword()
+                        ));
                         break;
                     }
 
                     if (!searchedLinks.contains(link)) {
                         searchedLinks.add(link);
 
-                        logger.info("SearchRequestProcessor - url: " + link);
-
                         Set<String> linksSet = perform(search, link);
                         linksSet.stream()
                                 .filter(s -> !searchedLinks.contains(s))
                                 .forEach(s -> {
                                     try {
-                                        linksToBeSearched.getAndIncrement();
                                         linksQueue.put(s);
                                     } catch (InterruptedException e) {
                                         throw new RuntimeException(e);
@@ -80,15 +77,13 @@ public class SearchRequestProcessor implements SearchPerformable, Runnable {
                                 });
                     }
                 } else {
-                    if (linksToBeSearched.get() >= searchedLinks.size()) {
-                        search.setStatus(SearchStatus.done);
-                        logger.info("SearchRequestProcessor - done 2");
-                        logger.info("linksToBeSearched: " + linksToBeSearched.get());
-                        logger.info("searchedLinks: " + searchedLinks.size());
-                        break;
-                    } else {
-                        logger.info("SearchRequestProcessor - deu ruim");
-                    }
+                    search.setStatus(SearchStatus.done);
+                    logger.info(String.format(
+                            "SearchRequestProcessor - id: %s keyword: %s - done",
+                            search.getId(),
+                            search.getKeyword()
+                    ));
+                    break;
                 }
             }
         } catch (InterruptedException e) {

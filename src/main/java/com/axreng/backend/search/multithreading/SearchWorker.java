@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.axreng.backend.config.ConfigNames.MAX_RETRIES;
 import static com.axreng.backend.config.ConfigNames.REQUEST_PROCESSORS;
@@ -51,15 +50,20 @@ public class SearchWorker implements SearchPerformable, Runnable {
 
                 search.setStatus(SearchStatus.active);
 
+                logger.info(String.format(
+                        "SearchWorker - id: %s keyword: %s",
+                        search.getId(),
+                        search.getKeyword()
+                ));
+
                 Set<String> linkSet = perform(search, Main.BASE_URL);
-                if(!linkSet.isEmpty()) {
+                if (!linkSet.isEmpty()) {
                     final BlockingQueue<String> linksQueue = new ArrayBlockingQueue<>(requestProcessorQueueSize);
                     final Set<String> searchedLinks = Collections.synchronizedSet(new HashSet<>());
-                    final AtomicInteger linksToBeSearched = new AtomicInteger(linkSet.size());
 
-                    createProcessors(linksQueue, search, linksToBeSearched, searchedLinks);
+                    createProcessors(linksQueue, search, searchedLinks);
 
-                    for(String link : linkSet) {
+                    for (String link : linkSet) {
                         try {
                             linksQueue.put(link);
                         } catch (InterruptedException e) {
@@ -76,9 +80,9 @@ public class SearchWorker implements SearchPerformable, Runnable {
         }
     }
 
-    private void createProcessors(BlockingQueue<String> linksQueue, Search search, AtomicInteger linksToBeSearched, Set<String> searchedLinks) {
-        for(int i = 0; i < requestProcessors; i++) {
-            SearchRequestProcessor processor = new SearchRequestProcessor(linksQueue, search, linksToBeSearched, searchedLinks);
+    private void createProcessors(BlockingQueue<String> linksQueue, Search search, Set<String> searchedLinks) {
+        for (int i = 0; i < requestProcessors; i++) {
+            SearchRequestProcessor processor = new SearchRequestProcessor(linksQueue, search, searchedLinks);
             new Thread(processor).start();
         }
     }
