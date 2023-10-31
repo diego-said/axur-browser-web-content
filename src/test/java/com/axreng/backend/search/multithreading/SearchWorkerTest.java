@@ -27,7 +27,7 @@ public class SearchWorkerTest {
             TimeUnit.MILLISECONDS.sleep(500);
         }
 
-        Assertions.assertEquals(1, search.getUrls().size());
+        Assertions.assertTrue( search.getUrls().size() >= 5);
     }
 
 }

@@ -63,12 +63,16 @@ public class SearchUtils {
                         if (t == HTML.Tag.A) {
                             Object link = a.getAttribute(HTML.Attribute.HREF);
                             if (link != null) {
-                                try {
-                                    URI baseURL = new URI(response.getUrl());
-                                    URI uri = new URI(String.valueOf(link));
-                                    links.add(baseURL.resolve(uri).toString());
-                                } catch (URISyntaxException e) {
-                                    throw new RuntimeException(e);
+                                String linkAsString = String.valueOf(link);
+                                boolean isMailAnchor = linkAsString.toLowerCase().contains("mailto");
+                                if (!isMailAnchor) {
+                                    try {
+                                        URI baseURL = new URI(response.getUrl());
+                                        URI uri = new URI(linkAsString);
+                                        links.add(baseURL.resolve(uri).toString());
+                                    } catch (URISyntaxException e) {
+                                        throw new RuntimeException(e);
+                                    }
                                 }
                             }
                         }

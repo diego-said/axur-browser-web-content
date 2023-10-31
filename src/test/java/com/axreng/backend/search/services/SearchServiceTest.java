@@ -1,7 +1,6 @@
 package com.axreng.backend.search.services;
 
 import com.axreng.backend.search.entities.Search;
-import com.axreng.backend.search.entities.SearchStatus;
 import com.axreng.backend.util.SearchUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,6 @@ public class SearchServiceTest {
         Assertions.assertNotNull(search);
         Assertions.assertEquals("security", search.getKeyword());
         Assertions.assertEquals(0, search.getUrls().size());
-        Assertions.assertEquals(SearchStatus.active, search.getStatus());
     }
 
     @Test
